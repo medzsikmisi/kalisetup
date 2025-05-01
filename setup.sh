@@ -22,6 +22,8 @@ echo '[+] Populating database for locate command'
 sudo updatedb
 echo '[+] Downloading and running pimpmykali'
 sudo .pimpmykali/pimpmykali.sh --autonoroot
+echo '[+] Disable authentication for neo4j'
+echo "dbms.security.auth_enabled=false"|sudo tee -a /etc/neo4j/neo4j.conf
 mkdir ~/http
 cp /usr/share/peass/linpeas/linpeas.sh ~/http
 cp /usr/share/peass/winpeas/winPEASx64.exe ~/http
