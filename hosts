@@ -1,0 +1,20 @@
+#!/bin/bash
+
+while getopts "i:h:" opt; do
+  case $opt in
+    i) IP="$OPTARG" ;;
+    h) HOSTNAME="$OPTARG" ;;
+    *) echo "Usage: $0 -i ip -h hostname"; exit 1 ;;
+  esac
+done
+
+if [ -z "$IP" ] || [ -z "$HOSTNAME" ]; then
+  echo "Both -i (ip) and -h (hostname) are required."
+  exit 1
+fi
+
+# Remove lines starting with 10.10 or 192.168
+sudo sed -i.bak -E '/^(10\.10|192\.168)/d' /etc/hosts
+
+# Append the new entry with a tab between IP and hostname
+printf "%s\t%s\n" "$IP" "$HOSTNAME" | sudo tee -a /etc/hosts > /dev/null
