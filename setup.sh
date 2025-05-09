@@ -27,4 +27,9 @@ echo "dbms.security.auth_enabled=false"|sudo tee -a /etc/neo4j/neo4j.conf
 mkdir ~/http
 cp /usr/share/peass/linpeas/linpeas.sh ~/http
 cp /usr/share/peass/winpeas/winPEASx64.exe ~/http
-
+echo "[+] Downloading hostfile modification script"
+wget https://raw.githubusercontent.com/medzsikmisi/kalisetup/refs/heads/main/hosts
+echo "[+] Moving the script to ~/.local/bin"
+mv hosts ~/.local/bin/
+echo "[+] Adding execution permission"
+sudo chmod +x ~/.local/bin/hosts
