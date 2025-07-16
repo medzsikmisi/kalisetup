@@ -33,4 +33,4 @@ echo "[+] Moving the script to ~/.local/bin"
 mv hosts ~/.local/bin/
 echo "[+] Adding execution permission"
 sudo chmod +x ~/.local/bin/hosts
-echo '# Remap prefix key \nset -g prefix C-s\nbind C-a send-prefix\nunbind C-b\n# Increasing history limit\nset -g history-limit 10000\n# Setting prefix + R to reload the tmux config\nunbind r\nbind r source-file ~/.tmux.conf\n# Turning on logging plugin\nrun-shell /opt/tmux-logging/logging.tmux' > ~/.tmux.conf
+echo "# Remap prefix key \nset -g prefix C-s\nbind C-a send-prefix\nunbind C-b\n# Increasing history limit\nset -g history-limit 10000\n# Setting prefix + R to reload the tmux config\nunbind r\nbind r source-file ~/.tmux.conf\n# List of plugins\nset -g @plugin 'tmux-plugins/tpm'\nset -g @plugin 'tmux-plugins/tmux-logging'\n# Initialize TMUX plugin manager\nrun '~/.tmux/plugins/tpm/tpm'" > ~/.tmux.conf 
