@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Color definitions
+BLUE='\033[34m'
+GREEN='\033[32m'
+RED='\033[31m'
+NC='\033[0m' # No Color
+
+# Usage display function
+usage() {
+    echo "Usage: $0 [-n] [-g] [-a] [-f] host"
+    echo "Options:"
+    echo "  -n  Run nmap"
+    echo "  -g  Run gobuster"
+    echo "  -a  Run all scans"
+    echo "  -f  Run ffuf subdomain scan"
+     exit 1
+}
+
+# Initialize flags
+RUN_NMAP=false
+RUN_GOBUSTER=false
+RUN_FFUF=false
+# Parse arguments
+while getopts "ngaf" opt; do
+    case $opt in
+        n) RUN_NMAP=true ;;
+        g) RUN_GOBUSTER=true ;;
+        a) RUN_NMAP=true; RUN_GOBUSTER=true ;;
+	f) RUN_FFUF=true ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND-1))
+
+# Check for host argument
+if [ -z "$1" ]; then
+    echo -e "${RED}Error: Missing host argument${NC}"
+    usage
+fi
+
+HOST=$1
+
+# Nmap scan function
+nmap_scan() {
+    echo -e "\n${BLUE}[+] Starting Nmap scan...${NC}"
+    sudo nmap -sC -v -sV -p- -oN  nmap_scan "$HOST"
+    nmap -sC -sV  -p 161 "$HOST" | grep -e "PORT" -e "snmp"| sudo tee -a nmap_scan 
+    echo -e "${GREEN}[+] Nmap scan completed\n${NC}"
+}
+
+# Gobuster scan function
+gobuster_scan() {
+    echo -e "\n${BLUE}[+] Starting Gobuster scan...${NC}"
+    gobuster dir -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt -u "http://$HOST" -o gobuster_scan
+    echo -e "${GREEN}[+] Gobuster scan completed\n${NC}"
+}
+
+ffuf_scan() {
+    echo -e "\n${BLUE}[+] Starting ffuf scan...${NC}"
+    ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u "http://$HOST" -H "HOST: FUZZ.$HOST" -ac -o ffuf_scan.txt
+    echo -e "${BLUE}[+] ffuf scan completed${NC}\n"
+}
+
+
+# Main execution flow
+echo -e "${BLUE}Starting enumeration against: $HOST${NC}"
+
+if $RUN_NMAP; then
+    nmap_scan
+fi
+
+if $RUN_GOBUSTER; then
+    gobuster_scan
+fi
+
+if $RUN_FFUF; then
+    ffuf_scan
+fi
+
+echo -e "${BLUE}All selected scans completed${NC}"
+
