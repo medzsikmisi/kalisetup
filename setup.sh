@@ -23,15 +23,11 @@ echo '[+] Populating database for locate command'
 sudo updatedb
 echo '[+] Downloading and running pimpmykali'
 sudo ~/pimpmykali/pimpmykali.sh --autonoroot
-echo '[+] Disable authentication for neo4j'
-echo "dbms.security.auth_enabled=false"|sudo tee -a /etc/neo4j/neo4j.conf
 mkdir ~/http
 cp /usr/share/peass/linpeas/linpeas.sh ~/http
 cp /usr/share/peass/winpeas/winPEASx64.exe ~/http
-echo "[+] Downloading hostfile modification script"
-wget https://raw.githubusercontent.com/medzsikmisi/kalisetup/refs/heads/main/hosts
-echo "[+] Moving the script to ~/.local/bin"
-mv hosts ~/.local/bin/
+echo "[+] Downloading hostfile modification script to ~/.local/bin"
+wget https://raw.githubusercontent.com/medzsikmisi/kalisetup/refs/heads/main/hosts -O ~/.local/bin/hosts
 echo "[+] Adding execution permission"
 sudo chmod +x ~/.local/bin/hosts
-echo "# Remap prefix key \nset -g prefix C-s\nbind C-a send-prefix\nunbind C-b\n# Increasing history limit\nset -g history-limit 10000\n# Setting prefix + R to reload the tmux config\nunbind r\nbind r source-file ~/.tmux.conf\n# List of plugins\nset -g @plugin 'tmux-plugins/tpm'\nset -g @plugin 'tmux-plugins/tmux-logging'\n# Initialize TMUX plugin manager\nrun '~/.tmux/plugins/tpm/tpm'" > ~/.tmux.conf 
+wget https://github.com/medzsikmisi/kalisetup/raw/refs/heads/main/.tmux.conf -O ~/.tmux.conf
