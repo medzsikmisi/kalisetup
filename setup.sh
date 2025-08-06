@@ -29,4 +29,5 @@ echo "[+] Downloading hostfile modification script to ~/.local/bin"
 wget https://raw.githubusercontent.com/medzsikmisi/kalisetup/refs/heads/main/hosts -O ~/.local/bin/hosts
 echo "[+] Adding execution permission"
 sudo chmod +x ~/.local/bin/hosts
+echo "[+] Downloading tmux config"
 wget https://github.com/medzsikmisi/kalisetup/raw/refs/heads/main/.tmux.conf -O ~/.tmux.conf
