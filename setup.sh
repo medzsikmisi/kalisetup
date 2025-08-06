@@ -1,6 +1,5 @@
 sudo apt install xsel cyberchef seclists -y
-pipx install updog
-pipx install wsgidav --pip-args 'cheroot lxml'
+pipx install goshs
 pipx install git+https://github.com/brightio/penelope
 sudo apt autoremove --purge light-locker
 echo "alias pbcopy='xsel --clipboard --input'" | sudo tee -a .zshrc
