@@ -8,58 +8,93 @@ NC='\033[0m' # No Color
 
 # Usage display function
 usage() {
-    echo "Usage: $0 [-n] [-g] [-a] [-f] host"
+    echo "Usage: $0 [-n] [-nargs \"args\"] [-g] [-gargs \"args\"] [-a] [-f] [-fargs \"args\"] [-fd] [-fdargs \"args\"] host"
     echo "Options:"
-    echo "  -n  Run nmap"
-    echo "  -g  Run gobuster"
-    echo "  -a  Run all scans"
-    echo "  -f  Run ffuf subdomain scan"
-     exit 1
+    echo "  -n         Run nmap"
+    echo "  -nargs     Extra arguments for nmap (quoted)"
+    echo "  -g         Run gobuster"
+    echo "  -gargs     Extra arguments for gobuster (quoted)"
+    echo "  -a         Run all scans"
+    echo "  -f         Run ffuf subdomain scan"
+    echo "  -fargs     Extra arguments for ffuf (quoted)"
+    echo "  -d         Run directory busting with ffuf"
+    echo "  -dargs     Extra arguments for ffuf dirbusting (quoted)"
+    exit 1
 }
 
-# Initialize flags
+# Initialize flags and args
 RUN_NMAP=false
 RUN_GOBUSTER=false
 RUN_FFUF=false
-# Parse arguments
-while getopts "ngaf" opt; do
-    case $opt in
-        n) RUN_NMAP=true ;;
-        g) RUN_GOBUSTER=true ;;
-        a) RUN_NMAP=true; RUN_GOBUSTER=true ;;
-	f) RUN_FFUF=true ;;
+RUN_FFUFD=false
+
+NMAP_ARGS=""
+GOBUSTER_ARGS=""
+FFUF_ARGS=""
+FFUFD_ARGS=""
+
+# Parse arguments with getopt for long options and handling args easier
+TEMP=$(getopt -o ngafd --long nargs:,gargs:,fargs:,dargs: -- "$@")
+if [ $? != 0 ]; then usage; fi
+
+eval set -- "$TEMP"
+
+while true; do
+    case "$1" in
+        -n) RUN_NMAP=true; shift ;;
+        --nargs) NMAP_ARGS="$2"; shift 2 ;;
+        -g) RUN_GOBUSTER=true; shift ;;
+        --gargs) GOBUSTER_ARGS="$2"; shift 2 ;;
+        -a) RUN_NMAP=true; RUN_GOBUSTER=true; RUN_FFUF=true; shift ;;
+        -f) RUN_FFUF=true; shift ;;
+        --fargs) FFUF_ARGS="$2"; shift 2 ;;
+	-d) RUN_FFUFD=true; shift ;;
+        --dargs) FFUFD_ARGS="$2"; shift 2 ;;
+        --) shift; break ;;
         *) usage ;;
     esac
 done
-shift $((OPTIND-1))
 
 # Check for host argument
 if [ -z "$1" ]; then
     echo -e "${RED}Error: Missing host argument${NC}"
     usage
 fi
-
 HOST=$1
 
 # Nmap scan function
 nmap_scan() {
     echo -e "\n${BLUE}[+] Starting Nmap scan...${NC}"
-    sudo nmap -sC -v -sV -p- -oN  nmap_scan "$HOST"
-    nmap -sC -sV  -p 161 "$HOST" | grep -e "PORT" -e "snmp"| sudo tee -a nmap_scan 
+     if [ -n "$NMAP_ARGS" ]; then
+        NMAP_ARGS="-sC -vv -sV -p-"
+    fi
+    sudo nmap $NMAP_ARGS -oN nmap_scan "$HOST"
+    nmap -sC -sV -p 161 "$HOST" | grep -e "PORT" -e "snmp" | sudo tee -a nmap_scan
     echo -e "${GREEN}[+] Nmap scan completed\n${NC}"
 }
 
 # Gobuster scan function
 gobuster_scan() {
     echo -e "\n${BLUE}[+] Starting Gobuster scan...${NC}"
-    gobuster dir -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt -u "http://$HOST" -o gobuster_scan
+    gobuster dir $GOBUSTER_ARGS -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt -u "http://$HOST" -o gobuster_scan
     echo -e "${GREEN}[+] Gobuster scan completed\n${NC}"
 }
 
 ffuf_scan() {
     echo -e "\n${BLUE}[+] Starting ffuf scan...${NC}"
-    ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u "http://$HOST" -H "HOST: FUZZ.$HOST" -ac -o ffuf_scan.txt
+     if [ -n "$FFUF_ARGS" ]; then
+        FFUF_ARGS="-ac"
+    fi
+    ffuf $FFUF_ARGS -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u "http://$HOST" -H "HOST: FUZZ.$HOST"  -o ffuf_scan.txt
     echo -e "${BLUE}[+] ffuf scan completed${NC}\n"
+}
+
+# FFUF dirbusting function
+ffufd_scan() {
+    echo -e "\n${BLUE}[+] Starting ffuf dirbusting...${NC}"
+    # FFUF Dirbusting
+    ffuf $FFUFD_ARGS -u "http://$HOST/FUZZ" -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt
+    echo -e "${GREEN}[+] ffuf dirbusting completed\n${NC}"
 }
 
 
@@ -78,5 +113,8 @@ if $RUN_FFUF; then
     ffuf_scan
 fi
 
-echo -e "${BLUE}All selected scans completed${NC}"
+if $RUN_FFUFD; then
+    ffufd_scan
+fi    
 
+echo -e "${BLUE}All selected scans completed${NC}"
