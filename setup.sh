@@ -1,6 +1,10 @@
 sudo apt install xsel cyberchef seclists -y
-pipx install goshs
-pipx install git+https://github.com/brightio/penelope
+python -m pip install uv
+tools = ('goshs' 'git+https://github.com/brightio/penelope')
+for tool in tools
+do
+	python -m uv tool install "$tool"
+done
 sudo apt autoremove --purge light-locker
 echo "alias pbcopy='xsel --clipboard --input'" | sudo tee -a .zshrc
 echo "alias pbpaste='xsel --clipboard --output'" | sudo tee -a .zshrc
