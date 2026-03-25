@@ -1,5 +1,5 @@
 sudo apt install xsel cyberchef seclists -y
-python -m pip install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 tools = ('goshs' 'git+https://github.com/brightio/penelope')
 for tool in tools
 do
